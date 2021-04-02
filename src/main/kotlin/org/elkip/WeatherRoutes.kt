@@ -35,9 +35,6 @@ fun Routing.weatherRoutes() {
         }
     }
 
-    get("/") {
-        call.respondText("Hello World!\n", contentType = ContentType.Text.Plain)
-    }
     get("/goodevening") {
         call.respondText("Good evening World!")
     }

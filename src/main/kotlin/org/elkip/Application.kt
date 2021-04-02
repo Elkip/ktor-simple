@@ -47,8 +47,22 @@ fun Application.module(testing: Boolean = true) {
     install(Locations) {
     }
 
+    install(DefaultHeaders) {
+        header("SystemName", "RandomApp")
+    }
+
     routing {
-        trace { application.log.trace(it.buildText()) }
+        //trace { application.log.trace(it.buildText()) }
+
+        get("/") {
+            for (h in call.request.headers.entries()) {
+                log.info("header: $h")
+            }
+            call.response.header("MyHeader", "MyValue")
+            call.response.header(HttpHeaders.SetCookie, "cookie")
+            call.respondText("Hello World!\n", contentType = ContentType.Text.Plain)
+        }
+
         weatherRoutes()
 
         libraryRoutes()
@@ -96,5 +110,5 @@ data class Article(val category: String) {
     data class Author(val article: Article, val author: String)
 
     @Location("/list")
-    data class List(val article: Article)
+    data class List(val article: Article, val sortBy: String, val asc: Int)
 }
