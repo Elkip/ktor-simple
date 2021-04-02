@@ -12,6 +12,7 @@ import io.ktor.client.request.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.jackson.*
+import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import java.time.LocalDateTime
@@ -43,14 +44,14 @@ fun Application.module(testing: Boolean = true) {
         }
     }
 
+    install(Locations) {
+    }
+
     routing {
         trace { application.log.trace(it.buildText()) }
         weatherRoutes()
 
         libraryRoutes()
-        get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-        }
 
         get("/json/jackson") {
             call.respond(mapOf("hello" to "world"))
@@ -63,6 +64,18 @@ fun Application.module(testing: Boolean = true) {
             val response = client.get<ByteArray>("http://localhost:8080/spaceship")
             log.info("the result: ${String(response)}")
         }
+
+        get<MyLocation> {
+            call.respondText("Location: name= ${it.name}")
+        }
+
+        get<Article.Author> {
+            call.respondText("$it")
+        }
+
+        get<Article.List> {
+            call.respondText("$it")
+        }
     }
 }
 
@@ -73,3 +86,15 @@ data class SpaceShip(
     val crew: List<String>,
     @JsonFormat(pattern="yyyy-MM-dd HH:mm")
     val launchDate: LocalDateTime = LocalDateTime.now())
+
+@Location("location/{name}")
+class MyLocation(val name: String)
+
+@Location("/article/{category}")
+data class Article(val category: String) {
+    @Location("/{author}")
+    data class Author(val article: Article, val author: String)
+
+    @Location("/list")
+    data class List(val article: Article)
+}

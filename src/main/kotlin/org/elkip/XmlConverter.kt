@@ -3,7 +3,6 @@ package org.elkip
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.gson.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.request.*

@@ -31,5 +31,6 @@ dependencies {
     implementation("io.ktor:ktor-client-apache:$ktor_version")
     implementation("io.ktor:ktor-client-gson:$ktor_version")
     implementation("io.ktor:ktor-gson:$ktor_version")
+    implementation("io.ktor:ktor-locations:$ktor_version")
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
 }
