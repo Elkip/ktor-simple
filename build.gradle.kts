@@ -20,6 +20,9 @@ repositories {
 }
 
 dependencies {
+    implementation("io.ktor:ktor-jackson:$ktor_version")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.2")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
