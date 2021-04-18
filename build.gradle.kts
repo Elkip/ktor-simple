@@ -29,6 +29,8 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-client-apache:$ktor_version")
+    implementation("io.ktor:ktor-metrics:$ktor_version")
+    implementation("io.dropwizard.metrics:metrics-jmx:4.0.0")
     implementation("io.ktor:ktor-client-gson:$ktor_version")
     implementation("io.ktor:ktor-gson:$ktor_version")
     implementation("io.ktor:ktor-locations:$ktor_version")

@@ -1,5 +1,7 @@
 package org.elkip
 
+import com.codahale.metrics.Slf4jReporter
+import com.codahale.metrics.jmx.JmxReporter
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -14,10 +16,14 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.jackson.*
 import io.ktor.locations.*
+import io.ktor.metrics.dropwizard.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.util.pipeline.*
+import org.slf4j.event.Level
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)
@@ -79,6 +85,50 @@ fun Application.module(testing: Boolean = true) {
             filePattern = "customErrors/myerror#.html")
     }
 
+    install(CallLogging) {
+        level = Level.INFO
+        filter { call -> call.request.path().startsWith("callLogging") }
+    }
+
+    install(DropwizardMetrics) {
+        Slf4jReporter.forRegistry(registry)
+            .outputTo(log)
+            .convertRatesTo(TimeUnit.SECONDS)
+            .convertDurationsTo(TimeUnit.MILLISECONDS)
+            .build()
+            .start(15, TimeUnit.SECONDS)
+
+        JmxReporter.forRegistry(registry)
+            .convertRatesTo(TimeUnit.SECONDS)
+            .convertDurationsTo(TimeUnit.MILLISECONDS)
+            .build()
+            .start()
+    }
+
+    val mike = PipelinePhase("Mike")
+    insertPhaseAfter(ApplicationCallPipeline.Call, mike)
+    intercept(ApplicationCallPipeline.Setup) {
+        log.info("Setup phase")
+    }
+    intercept(ApplicationCallPipeline.Call) {
+        log.info("Call phase")
+    }
+    intercept(ApplicationCallPipeline.Features) {
+        log.info("Features phase")
+    }
+    intercept(ApplicationCallPipeline.Monitoring) {
+        log.info("Monitoring phase")
+    }
+
+    intercept(mike) {
+        log.info("Mike Phase${call.request.uri}")
+        if (call.request.uri.contains("mike")) {
+            log.info("The uri contains mike")
+            call.respondText("The Endpoint contains mike")
+            finish()
+        }
+    }
+
     routing {
         //trace { application.log.trace(it.buildText()) }
 
@@ -91,6 +141,9 @@ fun Application.module(testing: Boolean = true) {
             call.respondText("Hello World!\n", contentType = ContentType.Text.Plain)
         }
 
+        get("/something/mike/something") {
+            call.respondText("Endpoint handled by route.")
+        }
 
         post("/form") {
             val params = call.receiveParameters()
@@ -99,6 +152,10 @@ fun Application.module(testing: Boolean = true) {
                 print("key: $it, value: $myval")
             }
             call.respondText("Thank you for this form data\n")
+        }
+
+        get("/callLogging/test") {
+            call.respondText("TEST LOGGING", ContentType.Text.Plain)
         }
 
 
