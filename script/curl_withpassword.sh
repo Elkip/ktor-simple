@@ -1,0 +1,1 @@
+curl -u "mike:password" -v "localhost:8080/secret/weather"

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.application.*
+import io.ktor.auth.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.features.json.*
@@ -45,6 +46,26 @@ fun Application.module(testing: Boolean = true) {
         }
     }
 
+    install(Authentication) {
+        basic("myAuth1") {
+            realm = " My Realm"
+            validate {
+                if (it.name == "mike" && it.password == "password")
+                    UserIdPrincipal(it.name)
+                else null
+            }
+        }
+        basic("myAuth2") {
+            realm = "MyOtherRealm"
+            validate {
+                if(it.password == "${it.name}abc123")
+                    UserIdPrincipal(it.name)
+                else
+                    null
+            }
+        }
+    }
+
     install(Locations) {
     }
 
@@ -78,6 +99,21 @@ fun Application.module(testing: Boolean = true) {
                 print("key: $it, value: $myval")
             }
             call.respondText("Thank you for this form data\n")
+        }
+
+
+        authenticate("myAuth1") {
+            get("/secret/weather") {
+                val principal = call.principal<UserIdPrincipal>()!!
+                call.respondText("Hello ${principal.name} it is secretly going to rain today")
+            }
+        }
+
+        authenticate("myAuth2") {
+            get("/secret/color") {
+                val principal = call.principal<UserIdPrincipal>()!!
+                call.respondText("Hello ${principal.name}, green is going to be popular tomorrow")
+            }
         }
 
         weatherRoutes()
