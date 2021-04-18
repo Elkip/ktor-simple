@@ -13,6 +13,7 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.jackson.*
 import io.ktor.locations.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import java.time.LocalDateTime
@@ -51,6 +52,12 @@ fun Application.module(testing: Boolean = true) {
         header("SystemName", "RandomApp")
     }
 
+    install(StatusPages) {
+        statusFile(HttpStatusCode.InternalServerError,
+            HttpStatusCode.NotFound,
+            filePattern = "customErrors/myerror#.html")
+    }
+
     routing {
         //trace { application.log.trace(it.buildText()) }
 
@@ -61,6 +68,16 @@ fun Application.module(testing: Boolean = true) {
             call.response.header("MyHeader", "MyValue")
             call.response.header(HttpHeaders.SetCookie, "cookie")
             call.respondText("Hello World!\n", contentType = ContentType.Text.Plain)
+        }
+
+
+        post("/form") {
+            val params = call.receiveParameters()
+            params.names().forEach {
+                val myval = params.get(it)
+                print("key: $it, value: $myval")
+            }
+            call.respondText("Thank you for this form data\n")
         }
 
         weatherRoutes()
